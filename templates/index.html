@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HiFi Dashboard</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; }
+  button { margin: 10px; padding: 10px 20px; font-size: 18px; }
+  .indicator { display: inline-block; width: 15px; height: 15px; border-radius: 50%; margin-left: 10px; background: gray; }
+  .on { background: lightgreen; }
+</style>
+</head>
+<body>
+<h1>HiFi Dashboard</h1>
+
+{% for comp in components %}
+<div>
+  <button onclick="selectComponent({{ loop.index }})">Select {{ comp }}</button>
+  <span id="select_{{ loop.index }}" {% if status_selected[comp] %}class="indicator on"{% else %}class="indicator"{% endif %}></span>
+  <button onclick="toggleComponent({{ loop.index }})">Launch/Stop {{ comp }}</button>
+  <span id="launch_{{ loop.index }}" {% if status_running[comp] %}class="indicator on"{% else %}class="indicator"{% endif %}></span>
+</div>
+{% endfor %}
+
+<div>
+  <button onclick="killAll()">Kill All</button>
+</div>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body>
+</html>
+
