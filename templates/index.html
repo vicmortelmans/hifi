@@ -4,29 +4,172 @@
 <meta charset="UTF-8">
 <title>HiFi Dashboard</title>
 <style>
-  body { font-family: sans-serif; padding: 20px; }
-  button { margin: 10px; padding: 10px 20px; font-size: 18px; }
-  .indicator { display: inline-block; width: 15px; height: 15px; border-radius: 50%; margin-left: 10px; background: gray; }
-  .on { background: lightgreen; }
+  /* ------------------------ */
+  /* Base body */
+  body {
+    margin: 0;
+    font-family: "Arial", sans-serif;
+    background: #222;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ------------------------ */
+  /* Header / Kill All column */
+  .dashboard {
+    display: flex;
+    flex: 0 0 300px;       /* Fixed height */
+    width: 100%;
+    background: #333;
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.7), inset 0 4px 8px rgba(255,255,255,0.05);
+  }
+
+  /* Each column */
+  .column {
+    flex: 1;
+    margin: 5px;
+    background: linear-gradient(145deg, #444, #222);
+    border: 2px solid #666;
+    border-radius: 10px;
+    box-shadow: inset -2px -2px 4px rgba(255,255,255,0.1),
+                inset 2px 2px 4px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px;
+  }
+
+  /* Column title */
+  .column-title {
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+    background: linear-gradient(to bottom, #666, #333);
+    border-radius: 6px;
+    padding: 5px 0;
+    box-shadow: inset 0 -2px 2px rgba(0,0,0,0.5);
+  }
+
+  /* Button row */
+  .button-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  /* Button style */
+  .btn {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 2px solid #999;
+    background: linear-gradient(145deg, #555, #222);
+    box-shadow: inset -2px -2px 4px rgba(255,255,255,0.2),
+                inset 2px 2px 4px rgba(0,0,0,0.7),
+                2px 2px 5px rgba(0,0,0,0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #eee;
+    font-size: 22px;
+  }
+
+  /* Status indicator */
+  .indicator {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: #555;
+    border: 1px solid #222;
+    box-shadow: 0 0 4px rgba(0,0,0,0.7);
+  }
+
+  .indicator.on {
+    background: #0f0;
+    box-shadow: 0 0 6px #0f0;
+  }
+
+  /* Kill All column */
+  .kill-column {
+    flex: 0 0 150px;
+    margin: 5px;
+    background: linear-gradient(145deg, #333, #111);
+    border: 2px solid #666;
+    border-radius: 10px;
+    box-shadow: inset -2px -2px 4px rgba(255,255,255,0.1),
+                inset 2px 2px 4px rgba(0,0,0,0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .kill-column .btn {
+    width: 80px;
+    height: 80px;
+    font-size: 28px;
+    border-color: #c33;
+    background: linear-gradient(145deg, #922, #511);
+    box-shadow: inset -2px -2px 6px rgba(255,100,100,0.2),
+                inset 2px 2px 6px rgba(0,0,0,0.7),
+                2px 2px 6px rgba(0,0,0,0.5);
+  }
+
+  /* Icon styles (optional) */
+  .btn i {
+    pointer-events: none;
+  }
 </style>
+
 </head>
 <body>
-<h1>HiFi Dashboard</h1>
 
-{% for comp in components %}
-<div>
-  <button onclick="selectComponent({{ loop.index }})">Select {{ comp }}</button>
-  <span id="select_{{ loop.index }}" {% if status_selected[comp] %}class="indicator on"{% else %}class="indicator"{% endif %}></span>
-  <button onclick="toggleComponent({{ loop.index }})">Launch/Stop {{ comp }}</button>
-  <span id="launch_{{ loop.index }}" {% if status_running[comp] %}class="indicator on"{% else %}class="indicator"{% endif %}></span>
-</div>
-{% endfor %}
+<div class="dashboard">
+  <!-- Kill All column -->
+  <div class="kill-column">
+    <div class="column-title">Kill All</div>
+    <button class="btn" onclick="killAll()">⏻</button>
+  </div>
 
-<div>
-  <button onclick="killAll()">Kill All</button>
+  <!-- Component columns -->
+  {% for comp in components %}
+  <div class="column">
+    <div class="column-title">{{ comp }}</div>
+
+    <div class="button-row">
+      <!-- Launch button -->
+      <div style="position: relative;">
+        <button class="btn" onclick="toggleComponent({{ loop.index }})">⏻</button>
+        <div class="indicator {% if status_running[comp] %}on{% endif %}"></div>
+      </div>
+
+      <!-- Select button -->
+      <div style="position: relative;">
+        <button class="btn" onclick="selectComponent({{ loop.index }})">🔊</button>
+        <div class="indicator {% if status_selected[comp] %}on{% endif %}"></div>
+      </div>
+    </div>
+
+    <!-- Placeholder for VU meter -->
+    <div class="vu-meter" style="width: 80%; height: 50px; background: #111; border-radius: 4px; box-shadow: inset 0 0 4px rgba(0,0,0,0.7);">
+      <!-- TODO: add VU meter bars -->
+    </div>
+  </div>
+  {% endfor %}
 </div>
 
 <script src="{{ url_for('static', filename='dashboard.js') }}"></script>
 </body>
 </html>
-

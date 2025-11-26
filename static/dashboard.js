@@ -3,11 +3,11 @@ function selectComponent(n) {
 }
 
 function toggleComponent(n) {
-    fetch(`/toggle/${n}`).then(() => setTimeout(updateStatus, 500));
+    fetch(`/toggle/${n}`).then(() => setTimeout(updateStatus, 100));
 }
 
 function killAll() {
-    fetch(`/kill_all`).then(() => setTimeout(updateStatus, 500));
+    fetch(`/kill_all`).then(() => setTimeout(updateStatus, 100));
 }
 
 function updateStatus() {
