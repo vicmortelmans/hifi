@@ -3,6 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <title>HiFi Dashboard</title>
+
+<!-- JustGage and Raphael (for gauges) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.3.5/justgage.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+const socket = io();
+const gauges = {};
+
+document.addEventListener("DOMContentLoaded", function() {
+    {% for comp in components %}
+    gauges["{{ comp }}"] = new JustGage({
+        id: "vu_{{ loop.index }}",
+        value: 0,
+        min: 0,
+        max: 100,
+        title: "",
+        label: "",
+        pointer: true,
+        gaugeWidthScale: 0.6
+    });
+    {% endfor %}
+});
+
+// When backend sends an update:
+socket.on("status_update", function(data) {
+    // Update running indicators
+    for (let comp in data.running) {
+        const el = document.querySelector(".run-indicator-" + comp);
+        if (data.running[comp]) el.classList.add("on");
+        else el.classList.remove("on");
+    }
+
+    // Update selected indicators
+    for (let comp in data.selected) {
+        const el = document.querySelector(".select-indicator-" + comp);
+        if (data.selected[comp]) el.classList.add("on");
+        else el.classList.remove("on");
+    }
+
+    // Update VU meters
+    for (let comp in data.vu) {
+        gauges[comp].refresh(data.vu[comp]);
+    }
+});
+</script>
 <style>
   /* ------------------------ */
   /* Base body */
@@ -131,6 +179,15 @@
   .btn i {
     pointer-events: none;
   }
+
+  /* VU-meters */
+  .vu {
+    background: #111;
+    border-radius: 8px;
+    box-shadow: inset -2px -2px 6px rgba(255,255,255,0.1),
+                inset 2px 2px 6px rgba(0,0,0,0.7);
+}
+
 </style>
 
 </head>
@@ -152,20 +209,18 @@
       <!-- Launch button -->
       <div style="position: relative;">
         <button class="btn" onclick="toggleComponent({{ loop.index }})">⏻</button>
-        <div class="indicator {% if status_running[comp] %}on{% endif %}"></div>
+            <div class="indicator run-indicator-{{ comp }}"></div>
       </div>
 
       <!-- Select button -->
       <div style="position: relative;">
         <button class="btn" onclick="selectComponent({{ loop.index }})">🔊</button>
-        <div class="indicator {% if status_selected[comp] %}on{% endif %}"></div>
+            <div class="indicator select-indicator-{{ comp }}"></div>
       </div>
     </div>
 
     <!-- Placeholder for VU meter -->
-    <div class="vu-meter" style="width: 80%; height: 50px; background: #111; border-radius: 4px; box-shadow: inset 0 0 4px rgba(0,0,0,0.7);">
-      <!-- TODO: add VU meter bars -->
-    </div>
+    <div class="vu" id="vu_{{ loop.index }}" style="width:100%; height:120px;"></div>
   </div>
   {% endfor %}
 </div>

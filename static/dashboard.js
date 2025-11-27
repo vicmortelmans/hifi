@@ -1,21 +1,12 @@
 function selectComponent(n) {
-    fetch(`/select/${n}`).then(() => updateStatus());
+    fetch(`/select/${n}`);
 }
 
 function toggleComponent(n) {
-    fetch(`/toggle/${n}`).then(() => setTimeout(updateStatus, 100));
+    fetch(`/toggle/${n}`);
 }
 
 function killAll() {
-    fetch(`/kill_all`).then(() => setTimeout(updateStatus, 100));
+    fetch(`/kill_all`);
 }
-
-function updateStatus() {
-    fetch("/").then(resp => resp.text()).then(html => {
-        document.body.innerHTML = html;
-    });
-}
-
-// Optional: auto-refresh indicators every 5s
-setInterval(updateStatus, 5000);
 

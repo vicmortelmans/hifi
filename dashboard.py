@@ -1,8 +1,18 @@
 #!/usr/bin/env python3
+import eventlet
+eventlet.monkey_patch()  # REQUIRED to prevent freeze
+
 from flask import Flask, render_template, jsonify
+from flask_socketio import SocketIO, emit
+import eventlet.green.subprocess as subprocess  # to prevent freeze
+import time
+import re
 import subprocess
+import numpy as np
+
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 COMPONENTS = ["component1", "component2"]  # extend as needed
 
@@ -25,11 +35,73 @@ def is_component_selected(component):
     except subprocess.CalledProcessError:
         return False
 
+def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
+    """
+    Reads a short audio block from a PulseAudio monitor source
+    and returns RMS level (0-100).
+    """
+    try:
+        # 16-bit stereo: 2 bytes per sample per channel
+        bytes_to_read = blocksize * 2 * 2  # blocksize samples, 2 bytes/sample, 2 channels
+
+        # Start parec as a subprocess
+        proc = subprocess.Popen(
+            ["parec", "-d", f"{sink_monitor_name}.monitor", "--format=s16le", "--channels=2", "--rate=44100"],
+            stdout=subprocess.PIPE
+        )
+
+        # Read a fixed number of bytes
+        raw = proc.stdout.read(bytes_to_read)
+
+        # Kill the process immediately to avoid streaming forever
+        proc.kill()
+        proc.wait()
+
+        # Convert to numpy array
+        data = np.frombuffer(raw, dtype=np.int16)
+        if data.size == 0:
+            return 0
+
+        # RMS calculation
+        rms = np.sqrt(np.mean(data.astype(np.float32) ** 2))
+        level = min(int(rms / 32768 * 100), 100)
+        return level
+
+    except Exception as e:
+        print(f"Error reading {sink_monitor_name}: {e}")
+        return 0
+
+########################################
+# Background thread: Streams updates
+########################################
+
+def ws_update_loop():
+    while True:
+        try:
+            running = {c: is_component_running(c) for c in COMPONENTS}
+            selected = {c: is_component_selected(c) for c in COMPONENTS}
+            vu = {c: get_audio_level_for_sink(c) for c in COMPONENTS}
+
+            # Push to all connected clients
+            socketio.emit("status_update", {
+                "running": running,
+                "selected": selected,
+                "vu": vu
+            })
+
+        except Exception as e:
+            print("Error in ws_update_loop:", e)
+
+        socketio.sleep(0.2)  # 5 updates per second (adjustable)
+
+
+########################################
+# Routes
+########################################
+
 @app.route("/")
 def index():
-    status_running = {c: is_component_running(c) for c in COMPONENTS}
-    status_selected = {c: is_component_selected(c) for c in COMPONENTS}
-    return render_template("index.html", status_running=status_running, status_selected=status_selected, components=COMPONENTS)
+    return render_template("index.html", components=COMPONENTS)
 
 @app.route("/select/<int:n>")
 def select_component(n):
@@ -56,6 +128,11 @@ def kill_all():
     subprocess.Popen(["./scripts/touch_sleep.sh"])
     return jsonify(success=True)
 
+########################################
+# Run background thread + server
+########################################
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    socketio.start_background_task(ws_update_loop)
+    socketio.run(app, host="0.0.0.0", port=5000)
 
