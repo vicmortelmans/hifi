@@ -27,13 +27,35 @@ def is_component_running(component):
         pass
     return False
 
-def is_component_selected(component):
+def is_component_selected(component_name):
+    """
+    Returns True if the given component is currently linked to the router_sink (both FL and FR),
+    False otherwise. Handles the two-line format of 'pw-link -l'.
+    """
+    router_sink_name="router_sink"
+
     try:
-        output = subprocess.check_output(["pactl", "get-sink-mute", component], text=True)
-        # output is like: "Mute: yes" or "Mute: no"
-        return "no" in output.lower()   # unmuted = selected
-    except subprocess.CalledProcessError:
+        output = subprocess.check_output(["pw-link", "-l"], text=True)
+    except subprocess.CalledProcessError as e:
+        print("Error running pw-link:", e)
         return False
+
+    lines = output.splitlines()
+    fl_linked = False
+    fr_linked = False
+
+    i = 0
+    while i < len(lines) - 1:
+        source = lines[i].strip()
+        link = lines[i+1].strip()
+        i += 2  # advance by 2 lines
+
+        if source == f"{component_name}:monitor_FL" and f"{router_sink_name}:playback_FL" in link:
+            fl_linked = True
+        elif source == f"{component_name}:monitor_FR" and f"{router_sink_name}:playback_FR" in link:
+            fr_linked = True
+
+    return fl_linked and fr_linked
 
 def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
     """
@@ -70,6 +92,7 @@ def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
     except Exception as e:
         print(f"Error reading {sink_monitor_name}: {e}")
         return 0
+
 
 ########################################
 # Background thread: Streams updates

@@ -12,18 +12,12 @@ fi
 SELECTED=${COMPONENTS[$((SELECT-1))]}
 
 # ----- Audio switching (existing logic) -----
-declare -A SINK_IDS
-while read -r ID NAME _; do
-    SINK_IDS[$NAME]=$ID
-done < <(pactl list short sinks)
-
-# Mute all sinks
-for NAME in "${COMPONENTS[@]}"; do
-    pactl set-sink-mute "${SINK_IDS[$NAME]}" 1
+for COMP in "${COMPONENTS[@]}"; do
+    pw-link -d $COMP:monitor_FL router_sink:playback_FL
+    pw-link -d $COMP:monitor_FR router_sink:playback_FR
 done
-
-# Unmute selected sink
-pactl set-sink-mute "${SINK_IDS[$SELECTED]}" 0
+pw-link $SELECTED:monitor_FL router_sink:playback_FL
+pw-link $SELECTED:monitor_FR router_sink:playback_FR
 
 echo "Selected component: $SELECTED"
 
