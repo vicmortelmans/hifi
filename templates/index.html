@@ -40,7 +40,7 @@ socket.on("status_update", function(data) {
 
     // Update selected indicators
     for (let comp in data.selected) {
-        const el = document.querySelector(".select-indicator-" + comp);
+        const el = document.querySelector(".select-" + comp);
         if (data.selected[comp]) el.classList.add("on");
         else el.classList.remove("on");
     }
@@ -91,16 +91,31 @@ socket.on("status_update", function(data) {
     padding: 10px;
   }
 
-  /* Column title */
-  .column-title {
-    width: 100%;
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 10px;
-    background: linear-gradient(to bottom, #666, #333);
-    border-radius: 6px;
-    padding: 5px 0;
-    box-shadow: inset 0 -2px 2px rgba(0,0,0,0.5);
+  /* Select button */
+  .select-button {
+      flex: 0 0 50px;
+      width: 100%;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      line-height: 50px;
+      cursor: pointer;
+      border-radius: 5px;
+      border: 2px solid #555;
+      transition: all 0.2s;
+  }
+
+  /* Select state colors */
+  .select-button.on {
+      background: #4caf50;
+      color: black;
+      border-color: #2e7d32;
+  }
+
+  .select-button {
+      background: #555;
+      color: #eee;
+      border-color: #333;
   }
 
   /* Button row */
@@ -203,7 +218,10 @@ socket.on("status_update", function(data) {
   <!-- Component columns -->
   {% for comp in components %}
   <div class="column">
-    <div class="column-title">{{ comp }}</div>
+    <div class="select-button select-{{ comp }}"
+         onclick="selectComponent({{ loop.index }})">
+        {{ comp }}
+    </div>
 
     <div class="button-row">
       <!-- Launch button -->
@@ -212,11 +230,6 @@ socket.on("status_update", function(data) {
             <div class="indicator run-indicator-{{ comp }}"></div>
       </div>
 
-      <!-- Select button -->
-      <div style="position: relative;">
-        <button class="btn" onclick="selectComponent({{ loop.index }})">🔊</button>
-            <div class="indicator select-indicator-{{ comp }}"></div>
-      </div>
     </div>
 
     <!-- Placeholder for VU meter -->

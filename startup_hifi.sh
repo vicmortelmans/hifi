@@ -16,20 +16,30 @@ run_bg() {
 echo "Setting up virtual sinks..."
 run_bg "$SCRIPTS_DIR/setup_virtual_sinks.sh"
 
-# --- 2. Setup loopbacks ---
-echo "Setting up loopbacks..."
-run_bg "$SCRIPTS_DIR/setup_loopbacks.sh"
-
-# --- 3. Start Flask dashboard ---
+# --- 2. Start Flask dashboard ---
 echo "Starting dashboard..."
 run_bg python3 "$DASHBOARD"
 
 # Give the dashboard a few seconds to start
 sleep 2
 
-# --- 4. Launch browser pointing to the dashboard ---
+# --- 3. Launch browser pointing to the dashboard ---
 echo "Opening dashboard in browser..."
-run_bg "$BROWSER" "http://localhost:5000"
+chromium \
+  --app="http://localhost:5000" \
+  --window-size=1920,300 \
+  --window-position=0,780 \
+  --class=Dashboard \
+  --name=Dashboard \
+  --user-data-dir=$HOME/.hifi/Dashboard \
+  --disable-background-media-suspend \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --disable-features=TranslateUI \
+  --disable-extensions \
+  --no-first-run &
+
+#run_bg "$BROWSER" "--class=Dashboard" "--name=Dashboard" "--user-data-dir=$HOME/.hifi/Dashboard" "--disable-background-media-suspend" "--new-window" "http://localhost:5000"
 
 echo "HiFi system startup complete."
 

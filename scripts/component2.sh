@@ -6,10 +6,12 @@ SCRIPT_NAME=$(basename "$0" .sh)
 mpv "$MUSIC_DIR" \
     --shuffle \
     --force-window=yes \
+    --geometry=1920x780+0+0 \
+    --no-border \
     --idle=yes \
     --title=$SCRIPT_NAME \
     --force-media-title=$SCRIPT_NAME \
-    --script-opts=osc=yes \
-    --audio-device="pipewire/$SCRIPT_NAME" \
-    --geometry=800x600+200+200 &
+    --script-opts=osc=yes,osc-visibility=always \
+    --no-window-dragging \
+    --audio-device="pipewire/$SCRIPT_NAME" &
 

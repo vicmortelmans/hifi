@@ -86,7 +86,7 @@ def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
 
         # RMS calculation
         rms = np.sqrt(np.mean(data.astype(np.float32) ** 2))
-        level = min(int(rms / 32768 * 100), 100)
+        level = min(int(rms / 32768 * 200), 100)  # was * 100
         return level
 
     except Exception as e:
@@ -128,6 +128,9 @@ def index():
 
 @app.route("/select/<int:n>")
 def select_component(n):
+    if not is_component_running(component_name):
+        subprocess.Popen([comp_script])
+        # small delay to allow window to appear before selecting
     subprocess.Popen(["./scripts/select_component.sh", str(n)])
     return jsonify(success=True)
 
