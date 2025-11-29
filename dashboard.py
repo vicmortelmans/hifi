@@ -29,11 +29,9 @@ def is_component_running(c):
         output = subprocess.check_output(["wmctrl", "-lx"], text=True)
         for line in output.splitlines():
             if name in line:
-                print(f"{name} is running")
                 return True
     except:
         pass
-    print(f"{name} is not running")
     return False
 
 def is_component_selected(c):
