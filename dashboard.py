@@ -10,6 +10,9 @@ import re
 import subprocess
 import numpy as np
 import yaml
+import tempfile
+from pathlib import Path
+
 
 
 app = Flask(__name__)
@@ -21,13 +24,16 @@ with open("components.yaml", "r") as f:
 
 def is_component_running(c):
     # check if a window exists for the component
+    name = f"component{c}"
     try:
         output = subprocess.check_output(["wmctrl", "-lx"], text=True)
         for line in output.splitlines():
-            if f"component{c}" in line:
+            if name in line:
+                print(f"{name} is running")
                 return True
     except:
         pass
+    print(f"{name} is not running")
     return False
 
 def is_component_selected(c):
@@ -97,6 +103,26 @@ def get_audio_level_for_sink(c, blocksize=4096):
         return 0
 
 
+def launch_component(c):
+    component = components[c-1]
+
+    # Load template
+    template = Path(f"scripts/launch_component_{component["type"]}.sh").read_text()
+
+    # Substitute values
+    script = template.format(name=f"component{c}", source=component["source"])
+
+    # Write temporary script
+    with tempfile.NamedTemporaryFile(delete=False, mode="w") as f:
+        f.write(script)
+        temp_path = f.name
+
+    # Make executable
+    Path(temp_path).chmod(0o755)
+
+    # Run script
+    subprocess.run([temp_path])
+
 ########################################
 # Background thread: Streams updates
 ########################################
@@ -129,26 +155,24 @@ def ws_update_loop():
 def index():
     return render_template("index.html", components=components)
 
-@app.route("/select/<int:n>")
-def select_component(n):
-    comp_script = f"./scripts/component{n}.sh"
+@app.route("/select/<int:c>")
+def select_component(c):
+    comp_script = f"./scripts/component{c}.sh"
 
-    if not is_component_running(n):
+    if not is_component_running(c):
         subprocess.Popen([comp_script])
         # small delay to allow window to appear before selecting
-    subprocess.Popen(["./scripts/select_component.sh", str(n)])
+    subprocess.Popen(["./scripts/select_component.sh", str(c)])
     return jsonify(success=True)
 
-@app.route("/toggle/<int:n>")
-def toggle_component(n):
-    comp_script = f"./scripts/component{n}.sh"
-
-    if is_component_running(n):
-        subprocess.Popen(["./scripts/kill_component.sh", str(n)])
+@app.route("/toggle/<int:c>")
+def toggle_component(c):
+    if is_component_running(c):
+        subprocess.Popen(["./scripts/kill_component.sh", str(c)])
     else:
-        subprocess.Popen([comp_script])
+        launch_component(c)
         # small delay to allow window to appear before selecting
-        subprocess.Popen(["./scripts/select_component.sh", str(n)])
+        subprocess.Popen(["./scripts/select_component.sh", str(c)])
     return jsonify(success=True)
 
 @app.route("/kill_all")
