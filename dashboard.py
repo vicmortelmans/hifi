@@ -9,25 +9,28 @@ import time
 import re
 import subprocess
 import numpy as np
+import yaml
 
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-COMPONENTS = ["component1", "component2"]  # extend as needed
+with open("components.yaml", "r") as f:
+    config = yaml.safe_load(f)
+    components = config["components"]
 
-def is_component_running(component):
+def is_component_running(c):
     # check if a window exists for the component
     try:
         output = subprocess.check_output(["wmctrl", "-lx"], text=True)
         for line in output.splitlines():
-            if component in line:
+            if f"component{c}" in line:
                 return True
     except:
         pass
     return False
 
-def is_component_selected(component_name):
+def is_component_selected(c):
     """
     Returns True if the given component is currently linked to the router_sink (both FL and FR),
     False otherwise. Handles the two-line format of 'pw-link -l'.
@@ -50,14 +53,14 @@ def is_component_selected(component_name):
         link = lines[i+1].strip()
         i += 2  # advance by 2 lines
 
-        if source == f"{component_name}:monitor_FL" and f"{router_sink_name}:playback_FL" in link:
+        if source == f"component{c}:monitor_FL" and f"{router_sink_name}:playback_FL" in link:
             fl_linked = True
-        elif source == f"{component_name}:monitor_FR" and f"{router_sink_name}:playback_FR" in link:
+        elif source == f"component{c}:monitor_FR" and f"{router_sink_name}:playback_FR" in link:
             fr_linked = True
 
     return fl_linked and fr_linked
 
-def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
+def get_audio_level_for_sink(c, blocksize=4096):
     """
     Reads a short audio block from a PulseAudio monitor source
     and returns RMS level (0-100).
@@ -68,7 +71,7 @@ def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
 
         # Start parec as a subprocess
         proc = subprocess.Popen(
-            ["parec", "-d", f"{sink_monitor_name}.monitor", "--format=s16le", "--channels=2", "--rate=44100"],
+            ["parec", "-d", f"component{c}.monitor", "--format=s16le", "--channels=2", "--rate=44100"],
             stdout=subprocess.PIPE
         )
 
@@ -90,7 +93,7 @@ def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
         return level
 
     except Exception as e:
-        print(f"Error reading {sink_monitor_name}: {e}")
+        print(f"Error reading component{c}: {e}")
         return 0
 
 
@@ -101,9 +104,9 @@ def get_audio_level_for_sink(sink_monitor_name, blocksize=4096):
 def ws_update_loop():
     while True:
         try:
-            running = {c: is_component_running(c) for c in COMPONENTS}
-            selected = {c: is_component_selected(c) for c in COMPONENTS}
-            vu = {c: get_audio_level_for_sink(c) for c in COMPONENTS}
+            running = {c: is_component_running(c) for c in range(1,len(components)+1)}
+            selected = {c: is_component_selected(c) for c in range(1,len(components)+1)}
+            vu = {c: get_audio_level_for_sink(c) for c in range(1,len(components)+1)}
 
             # Push to all connected clients
             socketio.emit("status_update", {
@@ -124,14 +127,13 @@ def ws_update_loop():
 
 @app.route("/")
 def index():
-    return render_template("index.html", components=COMPONENTS)
+    return render_template("index.html", components=components)
 
 @app.route("/select/<int:n>")
 def select_component(n):
     comp_script = f"./scripts/component{n}.sh"
-    component_name = COMPONENTS[n-1]
 
-    if not is_component_running(component_name):
+    if not is_component_running(n):
         subprocess.Popen([comp_script])
         # small delay to allow window to appear before selecting
     subprocess.Popen(["./scripts/select_component.sh", str(n)])
@@ -140,9 +142,8 @@ def select_component(n):
 @app.route("/toggle/<int:n>")
 def toggle_component(n):
     comp_script = f"./scripts/component{n}.sh"
-    component_name = COMPONENTS[n-1]
 
-    if is_component_running(component_name):
+    if is_component_running(n):
         subprocess.Popen(["./scripts/kill_component.sh", str(n)])
     else:
         subprocess.Popen([comp_script])
@@ -152,7 +153,7 @@ def toggle_component(n):
 
 @app.route("/kill_all")
 def kill_all():
-    for n in range(1, len(COMPONENTS)+1):
+    for n in range(1, len(components)+1):
         subprocess.Popen(["./scripts/kill_component.sh", str(n)])
     subprocess.Popen(["./scripts/touch_sleep.sh"])
     return jsonify(success=True)

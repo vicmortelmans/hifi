@@ -227,16 +227,16 @@ socket.on("status_update", function(data) {
   <!-- Component columns -->
   {% for comp in components %}
   <div class="column">
-    <div class="select-button select-{{ comp }}"
+    <div class="select-button select-{{ loop.index }}"
          onclick="selectComponent({{ loop.index }})">
-        {{ comp }}
+        {{ comp["name"] }}
     </div>
 
     <div class="button-row">
       <!-- Launch button -->
       <div style="position: relative;">
         <button class="btn" onclick="toggleComponent({{ loop.index }})">⏻</button>
-            <div class="indicator run-indicator-{{ comp }}"></div>
+            <div class="indicator run-indicator-{{ loop.index }}"></div>
       </div>
 
     </div>
@@ -244,7 +244,7 @@ socket.on("status_update", function(data) {
     <!-- Placeholder for VU meter -->
     <div class="vu-meter">
         <div class="vu-backlight"></div>
-        <div class="vu-needle" id="vu-{{ comp }}"></div>
+        <div class="vu-needle" id="vu-{{ loop.index }}"></div>
     </div>
   </div>
   {% endfor %}
