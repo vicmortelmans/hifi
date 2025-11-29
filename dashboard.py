@@ -34,6 +34,7 @@ def is_component_running(c):
         pass
     return False
 
+
 def is_component_selected(c):
     """
     Returns True if the given component is currently linked to the router_sink (both FL and FR),
@@ -47,22 +48,20 @@ def is_component_selected(c):
         print("Error running pw-link:", e)
         return False
 
+    output = output.replace('\n  |',"")
     lines = output.splitlines()
     fl_linked = False
     fr_linked = False
 
-    i = 0
-    while i < len(lines) - 1:
-        source = lines[i].strip()
-        link = lines[i+1].strip()
-        i += 2  # advance by 2 lines
-
-        if source == f"component{c}:monitor_FL" and f"{router_sink_name}:playback_FL" in link:
+    for line in lines:
+        if f"component{c}:monitor_FL" in line and f"{router_sink_name}:playback_FL" in line:
             fl_linked = True
-        elif source == f"component{c}:monitor_FR" and f"{router_sink_name}:playback_FR" in link:
+        if f"component{c}:monitor_FR" in line and f"{router_sink_name}:playback_FR" in line:
             fr_linked = True
+        if fl_linked and fr_linked:
+            return True
+    return False
 
-    return fl_linked and fr_linked
 
 def get_audio_level_for_sink(c, blocksize=4096):
     """
@@ -121,6 +120,9 @@ def launch_component(c):
     # Run script
     subprocess.run([temp_path])
 
+    print(f"Launched ({temp_path}):")
+    print(script)
+
 ########################################
 # Background thread: Streams updates
 ########################################
@@ -142,7 +144,7 @@ def ws_update_loop():
         except Exception as e:
             print("Error in ws_update_loop:", e)
 
-        socketio.sleep(0.1)  # 5 updates per second (adjustable)
+        socketio.sleep(0.05)  # 20 updates per second (adjustable)
 
 
 ########################################
@@ -155,10 +157,8 @@ def index():
 
 @app.route("/select/<int:c>")
 def select_component(c):
-    comp_script = f"./scripts/component{c}.sh"
-
     if not is_component_running(c):
-        subprocess.Popen([comp_script])
+        launch_component(c)
         # small delay to allow window to appear before selecting
     subprocess.Popen(["./scripts/select_component.sh", str(c)])
     return jsonify(success=True)

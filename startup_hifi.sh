@@ -9,7 +9,7 @@ BROWSER="chromium"               # change to your preferred browser
 
 # --- Helper: run a command in the background and redirect output ---
 run_bg() {
-    "$@" > /dev/null 2>&1 &
+    "$@" > $BASE_DIR/log.txt 2>&1 &
 }
 
 # --- 1. Setup virtual sinks ---

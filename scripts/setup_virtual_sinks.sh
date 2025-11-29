@@ -4,6 +4,8 @@ SINKS=("component1" "component2" "component3" "component4" "component5" "compone
 
 for SINK in "${SINKS[@]}"; do
     pactl load-module module-null-sink sink_name=$SINK sink_properties=device.description="$SINK"
+    pactl set-sink-mute $SINK 0
+    pactl set-sink-volume $SINK 0x10000   # 100%
 done
 pactl load-module module-null-sink sink_name=router_sink sink_properties=device.description="Router Sink"
 pw-link router_sink:monitor_FL ALC236\ Analog:playback_FL

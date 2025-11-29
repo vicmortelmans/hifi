@@ -1,5 +1,4 @@
 #!/bin/bash
-# replace path with your LAN share
 SOURCE="{source}"
 NAME="{name}"
 mpv "$SOURCE" \

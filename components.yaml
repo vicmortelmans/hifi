@@ -1,8 +1,36 @@
 components:
+  - name: Radio Centraal
+    type: mpv
+    source: https://streams.movemedia.eu/centraal
+
+  - name: Centraal 2024
+    type: mpv
+    source: /home/vic/Centraal
+
+  - name: Alle MP3s
+    type: mpv
+    source: /home/vic/Music/playlist.m3u
+
+  - name: MP3 Radio
+    type: mpv
+    source: http://radio.jezus-hart.be/music-vicmortelmans
+
+  - name: Bandcamp
+    type: chromium
+    source: https://bandcamp.com/vicmortelmans
+
+  - name: Radiooo
+    type: chromium
+    source: https://radiooooo.com
+
   - name: MixCloud
     type: chromium
     source: https://www.mixcloud.com/
 
-  - name: Alle MP3s
-    type: mpv
-    source: /home/vic/Music
+  - name: Katholiek
+    type: chromium
+    source: https://radio.gelovenleren.net
+
+  - name: Heilig Hart
+    type: chromium
+    source: http://radio.jezus-hart.be/play
