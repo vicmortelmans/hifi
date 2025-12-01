@@ -12,15 +12,25 @@ import numpy as np
 import yaml
 import tempfile
 from pathlib import Path
-
+import subprocess
+import threading
 
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# Read config file
 with open("components.yaml", "r") as f:
     config = yaml.safe_load(f)
     components = config["components"]
+
+# VU meter setup
+SAMPLE_RATE = 48000
+CHANNELS = 2
+BLOCK_SIZE = 4800  # 100ms
+# Shared dict for latest values
+latest_rms = {c: 0 for c in range(1,len(components)+1)}
+
 
 def is_component_running(c):
     # check if a window exists for the component
@@ -63,41 +73,24 @@ def is_component_selected(c):
     return False
 
 
-def get_audio_level_for_sink(c, blocksize=4096):
-    """
-    Reads a short audio block from a PulseAudio monitor source
-    and returns RMS level (0-100).
-    """
-    try:
-        # 16-bit stereo: 2 bytes per sample per channel
-        bytes_to_read = blocksize * 2 * 2  # blocksize samples, 2 bytes/sample, 2 channels
-
-        # Start parec as a subprocess
-        proc = subprocess.Popen(
-            ["parec", "-d", f"component{c}.monitor", "--format=s16le", "--channels=2", "--rate=44100"],
-            stdout=subprocess.PIPE
-        )
-
-        # Read a fixed number of bytes
-        raw = proc.stdout.read(bytes_to_read)
-
-        # Kill the process immediately to avoid streaming forever
-        proc.kill()
-        proc.wait()
-
-        # Convert to numpy array
-        data = np.frombuffer(raw, dtype=np.int16)
-        if data.size == 0:
-            return 0
-
-        # RMS calculation
-        rms = np.sqrt(np.mean(data.astype(np.float32) ** 2))
-        level = min(int(rms / 32768 * 400), 100)  # was * 100
-        return level
-
-    except Exception as e:
-        print(f"Error reading component{c}: {e}")
-        return 0
+def monitor_component(c):
+    # Used as a thread
+    cmd = [
+        "parec",
+        "--format=s16le",
+        f"--rate={SAMPLE_RATE}",
+        f"--channels={CHANNELS}",
+        f"--device=component{c}.monitor"
+    ]
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=BLOCK_SIZE*CHANNELS*2) as proc:
+        while True:
+            raw = proc.stdout.read(BLOCK_SIZE*CHANNELS*2)
+            if len(raw) < BLOCK_SIZE*CHANNELS*2:
+                break
+            data = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
+            data = data.reshape(-1, CHANNELS)
+            rms = np.sqrt(np.mean(data**2, axis=0)).mean()
+            latest_rms[c] = int(rms*100)
 
 
 def launch_component(c):
@@ -123,6 +116,16 @@ def launch_component(c):
     print(f"Launched ({temp_path}):")
     print(script)
 
+
+########################################
+# Background threads for VU sampling
+########################################
+
+# Start one thread per component
+for c in range(1,len(components)+1):
+    threading.Thread(target=monitor_component, args=(c,), daemon=True).start()
+
+
 ########################################
 # Background thread: Streams updates
 ########################################
@@ -132,20 +135,31 @@ def ws_update_loop():
         try:
             running = {c: is_component_running(c) for c in range(1,len(components)+1)}
             selected = {c: is_component_selected(c) for c in range(1,len(components)+1)}
-            vu = {c: get_audio_level_for_sink(c) for c in range(1,len(components)+1)}
 
             # Push to all connected clients
             socketio.emit("status_update", {
                 "running": running,
-                "selected": selected,
-                "vu": vu
+                "selected": selected
             })
 
         except Exception as e:
             print("Error in ws_update_loop:", e)
 
-        socketio.sleep(0.05)  # 20 updates per second (adjustable)
+        socketio.sleep(0.5)  # 2 updates per second (adjustable)
 
+
+def ws_vu_loop():
+    while True:
+        try:
+            # Push to all connected clients
+            socketio.emit("vu", {
+                "vu": latest_rms
+            })
+
+        except Exception as e:
+            print("Error in ws_vu_loop:", e)
+
+        socketio.sleep(0.05)  # 20 updates per second (adjustable)
 
 ########################################
 # Routes
@@ -186,5 +200,6 @@ def kill_all():
 
 if __name__ == "__main__":
     socketio.start_background_task(ws_update_loop)
+    socketio.start_background_task(ws_vu_loop)
     socketio.run(app, host="0.0.0.0", port=5000)
 

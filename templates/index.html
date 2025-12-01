@@ -24,15 +24,16 @@ socket.on("status_update", function(data) {
         if (data.selected[comp]) el.classList.add("on");
         else el.classList.remove("on");
     }
+});
 
+socket.on("vu", function(data) {
     // Update VU meters
-    const vuLevels = data.vu; // 0..100
-    for (const comp in vuLevels) {
+    for (const comp in data.vu) {
         const needle = document.getElementById('vu-' + comp);
         if (!needle) continue;
 
-        // Map 0..100% to -45deg..+45deg
-        const angle = (vuLevels[comp] / 100) * 90 - 45;
+        // Map 0..100 to -45deg..+45deg
+        const angle = (data.vu[comp] / 100) * 90 - 45;
         needle.style.transform = `rotate(${angle}deg)`;
     }
 });
@@ -205,12 +206,12 @@ socket.on("status_update", function(data) {
     position: absolute;
     bottom: -50px;
     left: 50%;
-    width: 2px;
+    width: 4px;
     height: 150px;
-    background: black;
+    background: darkred;
     transform-origin: bottom center;
     transform: rotate(-45deg); /* initial angle */
-    transition: transform 0.2s ease-out;
+    transition: transform 0.1s ease-out;
   }
 
 </style>
