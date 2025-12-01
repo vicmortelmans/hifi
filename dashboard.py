@@ -89,7 +89,7 @@ def monitor_component(c):
                 break
             data = np.frombuffer(raw, dtype=np.int16).astype(np.float32) / 32768.0
             data = data.reshape(-1, CHANNELS)
-            rms = np.sqrt(np.mean(data**2, axis=0)).mean()
+            rms = 2*np.sqrt(np.mean(data**2, axis=0)).mean()
             latest_rms[c] = int(rms*100)
 
 
