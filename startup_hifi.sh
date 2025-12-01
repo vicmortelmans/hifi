@@ -23,23 +23,29 @@ run_bg python3 "$DASHBOARD"
 # Give the dashboard a few seconds to start
 sleep 2
 
-# --- 3. Launch browser pointing to the dashboard ---
+# --- 3. Monitor power ---
+echo "Shut down when power is cut..."
+run_bg "$SCRIPTS_DIR/shutdown_on_power_cut.sh"
+
+# --- 4. Launch browser pointing to the dashboard ---
 echo "Opening dashboard in browser..."
-chromium \
-  --app="http://localhost:5000" \
-  --window-size=1920,300 \
-  --window-position=0,780 \
-  --class=Dashboard \
-  --name=Dashboard \
-  --user-data-dir=$HOME/.hifi/Dashboard \
-  --disable-background-media-suspend \
-  --disable-infobars \
-  --disable-session-crashed-bubble \
-  --disable-features=TranslateUI \
-  --disable-extensions \
-  --no-first-run &
-
-#run_bg "$BROWSER" "--class=Dashboard" "--name=Dashboard" "--user-data-dir=$HOME/.hifi/Dashboard" "--disable-background-media-suspend" "--new-window" "http://localhost:5000"
-
-echo "HiFi system startup complete."
-
+# Start Chromium dashboard and restart it if it exits
+while true; do
+    chromium \
+      --app="http://localhost:5000" \
+      --window-size=1920,300 \
+      --window-position=0,780 \
+      --class=Dashboard \
+      --name=Dashboard \
+      --user-data-dir=$HOME/.hifi/Dashboard \
+      --disable-background-media-suspend \
+      --disable-infobars \
+      --disable-session-crashed-bubble \
+      --disable-features=TranslateUI \
+      --disable-extensions \
+      --no-first-run &
+    echo "HiFi system startup complete."
+    wait $!
+    echo "Chromium dashboard crashed or exited, restarting..."
+    sleep 1
+done &

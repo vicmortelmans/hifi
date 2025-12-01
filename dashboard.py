@@ -191,6 +191,7 @@ def toggle_component(c):
 def kill_all():
     for n in range(1, len(components)+1):
         subprocess.Popen(["./scripts/kill_component.sh", str(n)])
+    subprocess.Popen(["./scripts/kill_all.sh"])
     subprocess.Popen(["./scripts/touch_sleep.sh"])
     return jsonify(success=True)
 

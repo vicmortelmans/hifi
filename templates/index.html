@@ -23,6 +23,9 @@ socket.on("status_update", function(data) {
         const el = document.querySelector(".select-" + comp);
         if (data.selected[comp]) el.classList.add("on");
         else el.classList.remove("on");
+        const backlight = document.getElementById('vu-backlight-' + comp);
+        if (data.selected[comp]) backlight.classList.add("on");
+        else backlight.classList.remove("on");
     }
 });
 
@@ -188,7 +191,7 @@ socket.on("vu", function(data) {
     width: 100%;
     height: 120px;
     margin: 10px auto;
-    background: rgba(255,188,50,1.0);
+    background: rgba(255,188,50,0.3);
     border-radius: 6px;
     box-shadow: inset 0 0 15px rgba(255,200,0,0.3);
     overflow: hidden;
@@ -198,8 +201,11 @@ socket.on("vu", function(data) {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: radial-gradient(circle at center, rgba(255,188,50,0.4), transparent 90%);
+    background: radial-gradient(circle at bottom, rgba(255,188,0,0.4), transparent 100%);
     pointer-events: none;
+  }
+  .vu-backlight.on {
+    background: radial-gradient(circle at bottom, rgba(255,188,0,1.0), transparent 100%);
   }
 
   .vu-needle {
@@ -208,7 +214,7 @@ socket.on("vu", function(data) {
     left: 50%;
     width: 4px;
     height: 150px;
-    background: darkred;
+    background: red;
     transform-origin: bottom center;
     transform: rotate(-45deg); /* initial angle */
     transition: transform 0.1s ease-out;
@@ -244,7 +250,7 @@ socket.on("vu", function(data) {
 
     <!-- Placeholder for VU meter -->
     <div class="vu-meter">
-        <div class="vu-backlight"></div>
+        <div class="vu-backlight" id="vu-backlight-{{ loop.index }}"></div>
         <div class="vu-needle" id="vu-{{ loop.index }}"></div>
     </div>
   </div>
