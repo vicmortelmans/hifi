@@ -45,6 +45,7 @@ wait_for_touch() {
 # --- MAIN ---
 dim_screen
 echo "Fake sleep: touch the screen to wake..."
+sleep 2
 wait_for_touch
 restore_screen
 echo "Awake!"
