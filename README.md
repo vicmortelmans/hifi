@@ -18,31 +18,31 @@ In `~/.config/openbox/rc.xml` add in the `<application>` section:
       </application>
 
       <!-- Component windows -->
-      <application class="component1">
+      <application class="component01">
         <decor>no</decor>
       </application>
-      <application class="component2">
+      <application class="component02">
         <decor>no</decor>
       </application>
-      <application class="component3">
+      <application class="component03">
         <decor>no</decor>
       </application>
-      <application class="component4">
+      <application class="component04">
         <decor>no</decor>
       </application>
-      <application class="component5">
+      <application class="component05">
         <decor>no</decor>
       </application>
-      <application class="component6">
+      <application class="component06">
         <decor>no</decor>
       </application>
-      <application class="component7">
+      <application class="component07">
         <decor>no</decor>
       </application>
-      <application class="component8">
+      <application class="component08">
         <decor>no</decor>
       </application>
-      <application class="component9">
+      <application class="component09">
         <decor>no</decor>
       </application>
       <application class="component10">

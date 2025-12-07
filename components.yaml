@@ -34,3 +34,9 @@ components:
   - name: Heilig Hart
     type: chromium
     source: http://radio.jezus-hart.be/play
+
+  - name: Youtube
+    type: chromium
+    source: https://youtube.com
+
+# Maximum 12 components supported!

@@ -34,7 +34,7 @@ latest_rms = {c: 0 for c in range(1,len(components)+1)}
 
 def is_component_running(c):
     # check if a window exists for the component
-    name = f"component{c}"
+    name = f"component{c:02d}"
     try:
         output = subprocess.check_output(["wmctrl", "-lx"], text=True)
         for line in output.splitlines():
@@ -64,9 +64,9 @@ def is_component_selected(c):
     fr_linked = False
 
     for line in lines:
-        if f"component{c}:monitor_FL" in line and f"{router_sink_name}:playback_FL" in line:
+        if f"component{c:02d}:monitor_FL" in line and f"{router_sink_name}:playback_FL" in line:
             fl_linked = True
-        if f"component{c}:monitor_FR" in line and f"{router_sink_name}:playback_FR" in line:
+        if f"component{c:02d}:monitor_FR" in line and f"{router_sink_name}:playback_FR" in line:
             fr_linked = True
         if fl_linked and fr_linked:
             return True
@@ -80,7 +80,7 @@ def monitor_component(c):
         "--format=s16le",
         f"--rate={SAMPLE_RATE}",
         f"--channels={CHANNELS}",
-        f"--device=component{c}.monitor"
+        f"--device=component{c:02d}.monitor"
     ]
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=BLOCK_SIZE*CHANNELS*2) as proc:
         while True:
@@ -100,7 +100,7 @@ def launch_component(c):
     template = Path(f"scripts/launch_component_{component["type"]}.sh").read_text()
 
     # Substitute values
-    script = template.format(name=f"component{c}", source=component["source"])
+    script = template.format(name=f"component{c:02d}", source=component["source"])
 
     # Write temporary script
     with tempfile.NamedTemporaryFile(delete=False, mode="w") as f:

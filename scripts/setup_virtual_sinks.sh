@@ -1,6 +1,6 @@
 #!/bin/bash
 # Create null sinks for each component
-SINKS=("component1" "component2" "component3" "component4" "component5" "component6" "component7" "component8" "component9" "component10" "component11" "component12")
+SINKS=("component01" "component02" "component03" "component04" "component05" "component06" "component07" "component08" "component09" "component10" "component11" "component12")
 
 for SINK in "${SINKS[@]}"; do
     pactl load-module module-null-sink sink_name=$SINK sink_properties=device.description="$SINK"

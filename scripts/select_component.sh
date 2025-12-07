@@ -1,11 +1,11 @@
 #!/bin/bash
 # Usage: ./select_component.sh 1
 
-COMPONENTS=("component1" "component2" "component3" "component4" "component5" "component6" "component7" "component8" "component9" "component10" "component11" "component12")
+COMPONENTS=("component01" "component02" "component03" "component04" "component05" "component06" "component07" "component08" "component09" "component10" "component11" "component12")
 SELECT=$1
 
 if [ -z "${COMPONENTS[$((SELECT-1))]}" ]; then
-    echo "Invalid component number. Choose 1-4."
+    echo "Invalid component number. Choose 1-12."
     exit 1
 fi
 
