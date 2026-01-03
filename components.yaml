@@ -29,7 +29,7 @@ components:
 
   - name: Katholiek
     type: chromium
-    source: https://radio.gelovenleren.net
+    source: http://radio.gelovenleren.net
 
   - name: Heilig Hart
     type: chromium
