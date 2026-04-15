@@ -1,23 +1,18 @@
 #!/usr/bin/env python3
-import eventlet
-eventlet.monkey_patch()  # REQUIRED to prevent freeze
-
 from flask import Flask, render_template, jsonify
 from flask_socketio import SocketIO, emit
-import eventlet.green.subprocess as subprocess  # to prevent freeze
-import time
-import re
 import subprocess
 import numpy as np
 import yaml
 import tempfile
 from pathlib import Path
-import subprocess
 import threading
+import time
+import re
 
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Read config file
 with open("components.yaml", "r") as f:
@@ -203,4 +198,3 @@ if __name__ == "__main__":
     socketio.start_background_task(ws_update_loop)
     socketio.start_background_task(ws_vu_loop)
     socketio.run(app, host="0.0.0.0", port=5000)
-
