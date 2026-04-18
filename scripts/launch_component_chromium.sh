@@ -13,7 +13,6 @@ PULSE_SINK=$NAME chromium \
   --disable-session-crashed-bubble \
   --disable-features=TranslateUI \
   --disable-extensions \
-  --disable-features=HttpsUpgrades \
-  --disable-features=HttpsFirstMode \
+  --disable-features=HttpsUpgrades,HttpsFirstMode,HSTSPreload \
   --no-first-run &
 

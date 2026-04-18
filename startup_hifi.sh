@@ -8,8 +8,9 @@ DASHBOARD="$BASE_DIR/dashboard.py"
 BROWSER="chromium"               # change to your preferred browser
 
 # --- Helper: run a command in the background and redirect output ---
+> $BASE_DIR/log.txt 
 run_bg() {
-    "$@" > $BASE_DIR/log.txt 2>&1 &
+    stdbuf -oL -eL "$@" >> $BASE_DIR/log.txt 2>&1 &
 }
 
 # --- 1. Setup virtual sinks ---
