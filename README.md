@@ -56,6 +56,6 @@ In `~/.config/openbox/rc.xml` add in the `<application>` section:
       </application>
     ```
 
-In `components.yaml`, configure your virtual HIFI components. Sources can be of type `mpv` or `chromium`.
+In `components.yaml`, configure your virtual HIFI components. Sources can be of type `mpv`, `chromium` or `brave-browser`.
 
 In BIOS, enable "Power on when AC is detected".

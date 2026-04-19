@@ -190,6 +190,11 @@ def kill_all():
     subprocess.Popen(["./scripts/touch_sleep.sh"])
     return jsonify(success=True)
 
+@app.route("/keyboard")
+def keyboard():
+    subprocess.Popen(["onboard", "-s", "900x300", "-l", "Compact"])
+    return jsonify(success=True)
+
 ########################################
 # Run background thread + server
 ########################################

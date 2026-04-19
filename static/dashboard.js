@@ -10,3 +10,7 @@ function killAll() {
     fetch(`/kill_all`);
 }
 
+function showKeyboard() {
+    fetch(`/keyboard`);
+}
+
