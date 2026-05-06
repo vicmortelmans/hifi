@@ -8,9 +8,11 @@ SCREEN="eDP"
 
 # Dim brightness for "sleep" (0.05 = very dark, >0 so touchscreen works)
 DIM_BRIGHTNESS=0.0
+DIM_BRIGHTNESS_BL=0%
 
 # Full brightness on wake
 FULL_BRIGHTNESS=1.0
+FULL_BRIGHTNESS_BL=100%
 
 # Touch device (check with `libinput list-devices` or `evtest`)
 TOUCH_DEVICE="/dev/input/event8"
@@ -20,11 +22,13 @@ TOUCH_DEVICE="/dev/input/event8"
 # Dim screen
 dim_screen() {
     xrandr --output "$SCREEN" --brightness "$DIM_BRIGHTNESS"
+    brightnessctl set "$DIM_BRIGHTNESS_BL"
 }
 
 # Restore full brightness
 restore_screen() {
     xrandr --output "$SCREEN" --brightness "$FULL_BRIGHTNESS"
+    brightnessctl set "$FULL_BRIGHTNESS_BL"
 }
 
 # Listen for touch events (blocking)
