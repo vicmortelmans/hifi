@@ -60,4 +60,4 @@ In `components.yaml`, configure your virtual HIFI components. Sources can be of 
 
 In BIOS, enable "Power on when AC is detected".
 
-Make sure to `sudo apt install brightnessctl`.
+Make sure to `sudo apt install brightnessctl` and `sudo usermod -aG video $USER`.
