@@ -12,7 +12,6 @@ PULSE_SINK=$NAME brave-browser \
   --disable-infobars \
   --disable-session-crashed-bubble \
   --disable-features=TranslateUI \
-  --disable-extensions \
   --disable-features=HttpsUpgrades,HttpsFirstMode,HSTSPreload \
   --no-first-run &
 
