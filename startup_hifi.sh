@@ -32,7 +32,11 @@ run_bg "$SCRIPTS_DIR/shutdown_on_power_cut.sh"
 echo "Play component 1..."
 wget -O - http://localhost:5000/toggle/1 
 
-# --- 5. Launch browser pointing to the dashboard ---
+# --- 5. Run liquidsoap to host USB audio input as online stream ---
+echo "Start liquidsoap online stream..."
+run_bg "$SCRIPTS_DIR/sonos-bridge.sh"
+
+# --- 6. Launch browser pointing to the dashboard ---
 echo "Opening dashboard in browser..."
 # Start Chromium dashboard and restart it if it exits
 while true; do
