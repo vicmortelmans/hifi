@@ -9,8 +9,8 @@ BROWSER="chromium"               # change to your preferred browser
 
 # --- Helper: run a command in the background and redirect output ---
 > $BASE_DIR/log.txt 
-run_bg() {
-    stdbuf -oL -eL "$@" >> $BASE_DIR/log.txt 2>&1 &
+run_bg() { 
+	stdbuf -oL -eL "$@" >> $BASE_DIR/log.txt 2>&1 & 
 }
 
 # --- 1. Setup virtual sinks ---
@@ -36,14 +36,18 @@ wget -O - http://localhost:5000/toggle/1
 echo "Start liquidsoap online stream..."
 run_bg "$SCRIPTS_DIR/sonos-bridge.sh"
 
-# --- 6. Launch browser pointing to the dashboard ---
+# --- 6. Run cava audio visualizer ---
+echo "Start cava in xfce4-terminal session..."
+run_bg "$SCRIPTS_DIR/cava.sh"
+
+# --- 7. Launch browser pointing to the dashboard ---
 echo "Opening dashboard in browser..."
 # Start Chromium dashboard and restart it if it exits
 while true; do
     chromium \
       --app="http://localhost:5000" \
       --window-size=1920,300 \
-      --window-position=0,780 \
+      --window-position=0,680 \
       --class=Dashboard \
       --name=Dashboard \
       --user-data-dir=$HOME/.hifi/Dashboard \

@@ -4,7 +4,7 @@ NAME="{name}"
 mpv "$SOURCE" \
     --shuffle \
     --force-window=yes \
-    --geometry=1920x780+0+0 \
+    --geometry=1920x680+0+0 \
     --no-border \
     --idle=yes \
     --title=$NAME \

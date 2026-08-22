@@ -61,3 +61,7 @@ In `components.yaml`, configure your virtual HIFI components. Sources can be of 
 In BIOS, enable "Power on when AC is detected".
 
 Make sure to `sudo apt install brightnessctl` and `sudo usermod -aG video $USER`.
+
+To output the USB audio input as online stream, install liquidsoup, get the name of the USB audio device from `pactl list short sources` and configure it in `scripts/sonos-bridge.liq` and in `scripts/cava-config`.
+
+The dashboard window size and position is hardcoded in `startup_hifi.sh`. The component windows size and position is hardcoded in `script/launch_component_*.sh`. The cava audio visualizer window size and position is hardcoded in `scripts/cava.sh`.
